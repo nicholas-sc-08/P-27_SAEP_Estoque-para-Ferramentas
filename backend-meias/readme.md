@@ -179,8 +179,4 @@ Projeto sob licença MIT.
 
 ---
 
-Feito com 💙 por [rafaellindemann](https://github.com/rafaellindemann)
-
----
-
 

@@ -132,15 +132,6 @@ Ao efetuar o login, o usuário tem acesso às rotas protegidas e à gestão de e
 
 ---
 
-## 🧾 Créditos e autoria
-
-Desenvolvido com foco educacional por [**Rafael Lindemann Duarte**](https://github.com/rafaellindemann),
-docente do **SENAI/SC — Desenvolvimento de Sistemas**.
-
-O projeto é livre para fins de estudo, referência e adaptação em atividades práticas.
-
----
-
 ## 📄 Licença
 
 Este repositório está sob a licença MIT.
