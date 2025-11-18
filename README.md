@@ -138,4 +138,10 @@ Este repositório está sob a licença MIT.
 
 ---
 
-
+| Requisitos Funcionais | Titulo | Descrição | 
+| RF - 001 | Cadastro de Ferramenta | O sistema deve permitir que o usuário possa realizar um cadastro de ferramenta no sistema |
+| RF - 002 | Visulizar Ferramenta | O sistema deve permitir que o usuário possa visualizar a ferramenta cadastrada | 
+| RF - 003 | Editar Ferramenta | O sistema deve permitir que o usuário possa editar a ferramenta cadastrada |
+| RF - 004 | Excluir Ferramenta | O sistema deve permitir que o usuário possa excluir a ferramenta |
+| RF - 005 | Login do Usuário | O sistema deve permitir o login desse usuário na plataforma |
+| RF - 006 | Gestão de Estoque | O sistema deve permitir o usuário a utilizar a gestão de estoque |
