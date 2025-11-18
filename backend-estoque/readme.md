@@ -3,8 +3,8 @@
 
 # 🧦 Backend - Sistema de Estoque “meia meia meia”
 
-Este é o backend RESTful em **Node.js + Express + PostgreSQL** do sistema de controle de estoque da fábrica **“meia meia meia”**.  
-Ele fornece autenticação simples de divulgadores, cadastro e gerenciamento de ferramentas (modelos de meias), além do registro de movimentações de entrada e saída com atualização automática de saldo.
+Este é o backend RESTful em **Node.js + Express + PostgreSQL** do sistema de controle de estoque da fábrica **“Estoque para Ferramentas”**.  
+Ele fornece autenticação simples de divulgadores, cadastro e gerenciamento de ferramentas (modelos de ferramentas), além do registro de movimentações de entrada e saída com atualização automática de saldo.
 
 ---
 
@@ -28,7 +28,7 @@ Ele fornece autenticação simples de divulgadores, cadastro e gerenciamento de 
 ## 📦 Instalação e execução
 
 ```bash
-git clone https://github.com/seu-usuario/meia-meia-meia-backend.git
+git clone https://github.com/seu-usuario/.git
 cd meia-meia-meia-backend
 npm install
 node server.js
@@ -102,17 +102,6 @@ INSERT INTO usuarios (nome, email, senha) VALUES
   ('Bruno Lima', 'bruno@example.com', '123'),
   ('Carla Dias', 'carla@example.com', '123')
 ON CONFLICT (email) DO NOTHING;
-
-  id              SERIAL PRIMARY KEY,
-  nome            TEXT NOT NULL,
-  quantidade      INTEGER NOT NULL DEFAULT 0,
-  estoque_minimo  INTEGER NOT NULL DEFAULT 0,
-  material  TEXT NOT NULL,
-  tamanho TEXT  NOT NULL,
-  modelo  TEXT  NOT NULL,
-  marca TEXT  NOT NULL,
-  peso  FLOAT NOT NULL,
-  tensao_eletrica_furadeira FLOAT
 
 -- ferramentas (modelos oficiais do estoque de ferramentas)
 INSERT INTO ferramentas (nome, quantidade, estoque_minimo, material, tamanho, modelo, marca, peso, tensao_eletrica) VALUES

@@ -78,7 +78,7 @@ app.get('/ferramentas', async (req, res) => {
   const q = (req.query.q || '').trim();
   const hasQ = q.length > 0;
   const sql =
-    `SELECT id, nome, quantidade, estoque_minimo,
+    `SELECT id, nome, quantidade, estoque_minimo, material, tamanho, modelo, marca, peso, tensao_eletrica,
             (quantidade < estoque_minimo) AS abaixo_do_minimo
        FROM ferramentas
       ${hasQ ? 'WHERE lower(nome) LIKE lower($1)' : ''}
@@ -94,7 +94,7 @@ app.get('/ferramentas', async (req, res) => {
 app.get('/ferramentas/:id', async (req, res) => {
   try {
     const r = await pool.query(
-      `SELECT id, nome, quantidade, estoque_minimo,
+      `SELECT id, nome, quantidade, estoque_minimo, material, tamanho, modelo, marca, peso, tensao_eletrica,
               (quantidade < estoque_minimo) AS abaixo_do_minimo
          FROM ferramentas WHERE id=$1`,
       [req.params.id]
@@ -104,16 +104,18 @@ app.get('/ferramentas/:id', async (req, res) => {
   } catch (e) { fail(res, e); }
 });
 
-// criar produto
+// criar ferramenta
 app.post('/ferramentas', async (req, res) => {
-  const { nome, quantidade = 0, estoque_minimo = 0 } = req.body || {};
+  const { nome, quantidade = 0, estoque_minimo = 0, material, tamanho, modelo, marca, peso, tensao_eletrica } = req.body || {};
   if (!nome) return fail(res, 'Campo obrigatório: nome', 400);
+  console.log(req.body);
+
   try {
     const r = await pool.query(
-      `INSERT INTO ferramentas (nome, quantidade, estoque_minimo)
-       VALUES ($1,$2,$3)
-       RETURNING id, nome, quantidade, estoque_minimo`,
-      [nome, Number(quantidade) || 0, Number(estoque_minimo) || 0]
+      `INSERT INTO ferramentas (nome, quantidade, estoque_minimo, material, tamanho, modelo, marca, peso, tensao_eletrica)
+       VALUES ($1,$2,$3, $4, $5, $6, $7, $8, $9)
+       RETURNING (id, nome, quantidade, estoque_minimo, material, tamanho, modelo, marca, peso, tensao_eletrica)`,
+      [nome, Number(quantidade) || 0, Number(estoque_minimo) || 0, material, tamanho, modelo, marca, Number(peso), Number(tensao_eletrica)]
     );
     ok(res, r.rows[0]);
   } catch (e) { fail(res, e); }
@@ -152,9 +154,9 @@ app.delete('/ferramentas/:id', async (req, res) => {
 
 // criar movimentação + atualizar saldo do produto (transação simples)
 app.post('/movimentacoes', async (req, res) => {
-  const { produto_id, usuario_id, tipo, quantidade, data_movimentacao, observacao } = req.body || {};
-  if (!produto_id || !usuario_id || !tipo || !quantidade)
-    return fail(res, 'Campos obrigatórios: produto_id, usuario_id, tipo, quantidade', 400);
+  const { ferramenta_id, usuario_id, tipo, quantidade, data_movimentacao, observacao } = req.body || {};
+  if (!ferramenta_id || !usuario_id || !tipo || !quantidade)
+    return fail(res, 'Campos obrigatórios: ferramenta_id, usuario_id, tipo, quantidade', 400);
 
   if (!['entrada', 'saida'].includes(String(tipo).toLowerCase()))
     return fail(res, "tipo deve ser 'entrada' ou 'saida'", 400);
@@ -168,7 +170,7 @@ app.post('/movimentacoes', async (req, res) => {
     // atualiza saldo
     const up = await client.query(
       'UPDATE ferramentas SET quantidade = quantidade + $1 WHERE id=$2 RETURNING id, nome, quantidade, estoque_minimo',
-      [delta, produto_id]
+      [delta, ferramenta_id]
     );
     if (!up.rows.length) {
       await client.query('ROLLBACK');
@@ -178,10 +180,10 @@ app.post('/movimentacoes', async (req, res) => {
 
     // registra movimento
     const ins = await client.query(
-      `INSERT INTO movimentacoes (produto_id, usuario_id, tipo, quantidade, data_movimentacao, observacao)
+      `INSERT INTO movimentacoes (ferramenta_id, usuario_id, tipo, quantidade, data_movimentacao, observacao)
        VALUES ($1,$2,$3,$4,COALESCE($5, NOW()),$6)
-       RETURNING id, produto_id, usuario_id, tipo, quantidade, data_movimentacao, observacao`,
-      [produto_id, usuario_id, String(tipo).toLowerCase(), Math.abs(quantidade), data_movimentacao || null, observacao || null]
+       RETURNING id, ferramenta_id, usuario_id, tipo, quantidade, data_movimentacao, observacao`,
+      [ferramenta_id, usuario_id, String(tipo).toLowerCase(), Math.abs(quantidade), data_movimentacao || null, observacao || null]
     );
 
     await client.query('COMMIT');
@@ -195,28 +197,28 @@ app.post('/movimentacoes', async (req, res) => {
       },
     });
   } catch (e) {
-    try { await client.query('ROLLBACK'); } catch (_) {}
+    try { await client.query('ROLLBACK'); } catch (_) { }
     client.release();
     fail(res, e);
   }
 });
 
-// histórico geral ou filtrado por produto (?produto_id=)
+// histórico geral ou filtrado por produto (?ferramenta_id=)
 app.get('/movimentacoes', async (req, res) => {
-  const { produto_id } = req.query;
-  const hasFilter = !!produto_id;
+  const { ferramenta_id } = req.query;
+  const hasFilter = !!ferramenta_id;
   const sql = `
-    SELECT m.id, m.produto_id, p.nome AS produto_nome,
+    SELECT m.id, m.ferramenta_id, p.nome AS produto_nome,
            m.usuario_id, u.nome AS responsavel_nome,
            m.tipo, m.quantidade, m.data_movimentacao, m.observacao
       FROM movimentacoes m
-      JOIN ferramentas p ON p.id = m.produto_id
+      JOIN ferramentas p ON p.id = m.ferramenta_id
       JOIN usuarios u ON u.id = m.usuario_id
-     ${hasFilter ? 'WHERE m.produto_id = $1' : ''}
+     ${hasFilter ? 'WHERE m.ferramenta_id = $1' : ''}
      ORDER BY m.data_movimentacao DESC, m.id DESC
   `;
   try {
-    const r = await pool.query(sql, hasFilter ? [produto_id] : []);
+    const r = await pool.query(sql, hasFilter ? [ferramenta_id] : []);
     ok(res, r.rows);
   } catch (e) { fail(res, e); }
 });
